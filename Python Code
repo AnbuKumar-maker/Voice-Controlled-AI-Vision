@@ -1,0 +1,98 @@
+
+# import all necessary components
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+import pickle
+import socket
+import struct
+from PIL import Image
+import numpy as np
+import time
+import os, sys
+import sys
+import cv2
+import smtplib
+import numpy as np
+
+from imutils.video import VideoStream
+import datetime
+import argparse
+import imutils
+import time
+import cv2
+from time import sleep
+
+
+HOSTNAME = 'smtp-mail.outlook.com'
+USERNAME = ''
+PASSWORD = ''
+RECEPIENT_ADDRESS = ''
+SUBJECT = 'Subject: AI camera using (imageNetV3) engine detected: '
+
+""" Get email credentials
+	:param none: 
+	:returns none : 
+"""
+def LoginCredentials():
+	USERNAME = input('Enter your email address: ')
+	PASSWORD = input('Enter your email password: ')
+	RECEPIENT_ADDRESS = input('Enter the recepient address: ')
+	return USERNAME,PASSWORD,RECEPIENT_ADDRESS
+	
+	
+def sendmail(detectedobject, user, emailpass, rcp_emailaddr):
+	EMAIL_BODY = SUBJECT + str(detectedobject)
+	
+	msg = MIMEMultipart('related')
+	msg['Subject'] = SUBJECT
+	msg['From'] = USERNAME
+	msg['To'] = RECEPIENT_ADDRESS
+
+	html = """\
+	<html>
+	  <head></head>
+		<body>
+		  <img src="cid:image1" alt="Logo" style="width:300px;height:400px;"><br>
+		   <p><h4 style="font-size:15px;">AI engine camera snapshot.</h4></p>           
+		</body>
+	</html>
+	"""
+	# Record the MIME types of text/html.
+	part2 = MIMEText(html, 'html')
+
+	# Attach parts into message container.
+	msg.attach(part2)
+
+	# This example assumes the image is in the current directory
+	fp = open('ELE.JPG', 'rb')
+	msgImage = MIMEImage(fp.read())
+	fp.close()
+
+	msgImage.add_header('Content-ID', '<image1>')
+	msg.attach(msgImage)
+
+	# print(msg.as_string())
+	server = smtplib.SMTP(HOSTNAME, 587)
+	server.ehlo()
+	server.starttls()
+	server.login(user, emailpass)	
+	server.sendmail(user, [rcp_emailaddr],msg.as_string())
+	server.quit()
+	print ("Email sent. Logging Out...")
+	
+	
+if __name__ == '__main__':
+		try:
+			print ('To exit the program press Ctrl-C.')
+			USERNAME,PASSWORD,RECEPIENT_ADDRESS = LoginCredentials()
+			detectedobject = str("found another lama")
+			print ('Sending email \r\n.')
+			sendmail(detectedobject, USERNAME, PASSWORD, RECEPIENT_ADDRESS)
+			print ('Email sent \r\n.')
+
+		except KeyboardInterrupt:
+			print ('Quitting...')
+			
+			

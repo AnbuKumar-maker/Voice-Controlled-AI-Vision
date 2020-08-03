@@ -1,0 +1,120 @@
+#include <SoftwareSerial.h>
+#include <Otto9.h> //-- Otto Library version 9
+Otto9 Otto;  //This is Otto!
+#define SOFTSERIAL_RX_PIN  6
+#define SOFTSERIAL_TX_PIN  7
+SoftwareSerial speech(SOFTSERIAL_RX_PIN,SOFTSERIAL_TX_PIN);
+
+//---------------------------------------------------------
+//-- First step: Configure the pins where the servos are attached
+/*             -------- 
+              |  O  O  |
+              |--------|
+  RIGHT LEG 3 |        | LEFT LEG 2
+               -------- 
+               ||     ||
+RIGHT FOOT 5 |---     ---| LEFT FOOT 4  
+*/
+// SERVO PINs //////////////////////////////////////////////////////////////////////////////
+#define PIN_YL 2 //servo[0]  left leg
+#define PIN_YR 3 //servo[1]  right leg
+#define PIN_RL 4 //servo[2]  left foot
+#define PIN_RR 5 //servo[3]  right foot
+// ULTRASONIC PINs /////////////////////////////////////////////////////////////////////////
+#define PIN_Trigger  8  //TRIGGER pin (8)
+#define PIN_Echo     9  //ECHO pin (9)
+// BUZZER PIN //////////////////////////////////////////////////////////////////////////////
+#define PIN_Buzzer  A3 //BUZZER pin (A3)
+
+int distance; // variable to store distance read from ultrasonic range finder module
+bool obstacleDetected = false; // logic state for when object detected is at the distance we set
+
+void setup() {
+  Serial.begin(9600);
+  speech.begin(9600);
+  speech.listen(); 
+  Otto.init(PIN_YL, PIN_YR, PIN_RL, PIN_RR, true, A6, PIN_Buzzer, PIN_Trigger, PIN_Echo); //Set the servo pins and ultrasonic pins and Buzzer pin
+  Otto.sing(S_connection);
+  Otto.home();
+  delay(500);
+  Otto.playGesture(OttoSuperHappy);
+}
+
+void loop(){
+   int a=0;
+
+    if(speech.available())
+    {
+        a = speech.read();    // Read the return value from the Speech Recognizer
+        switch (a)
+        {
+            case 22:   // Go
+            Otto.sing(S_happy_short);            
+            Otto.walk(3,1000,1);
+            Otto.sing(S_superHappy);
+            delay(1000);
+            break;
+            case 3:  //play music
+            Otto.moonwalker(3,800,20,1);
+            Otto.sing(S_superHappy);
+            Otto.moonwalker(3,800,20,-1);
+            Otto.sing(S_happy);
+            delay(1000);
+            break;
+            case 4:  //pause
+            Otto.playGesture(OttoAngry); 
+            Otto.sing(S_sad);
+            delay(1000);
+            break;
+            case 5:  //next
+            Otto.crusaito(2, 1000, 20,1);
+            Otto.playGesture(OttoFart);
+            delay(1000);
+            break;
+            case 6:  //previous
+            Otto.playGesture(OttoConfused); 
+            Otto.jitter(2, 1000, 20);
+            delay(1000);
+            break;
+            case 7:  //up
+            Otto.jump(1,2000);
+            Otto.updown(2, 1500, 40);
+            delay(1000);
+            break;
+            case 8:  //down
+            Otto.playGesture(OttoSad);
+            delay(1000);
+            break;
+            case 16:  //left
+            Otto.turn(3,1000,1);
+            delay(1000);
+            break;
+            case 17:  //right
+            Otto.turn(3,1000,-1);//3 steps turning RIGHT 
+            delay(1000);
+            break;
+            case 18:  //stop
+            Otto.playGesture(OttoSleeping);
+            Otto.sing(S_sleeping);
+            delay(1000);
+            break;     
+            case 19:  //start
+            Otto.playGesture(OttoVictory); 
+            delay(1000);
+            break;  
+            case 20:  //mode 1
+            Otto.sing(S_mode1);  
+            delay(1000);
+            break;  
+            case 21:  //mode 2
+            Otto.sing(S_mode2); 
+            Otto.shakeLeg (1,1000,-1); 
+            Otto.bend (1,1000,1); 
+            delay(1000);
+            break;                                                                                             
+            default:
+            break;
+        }
+    }
+  }
+  
